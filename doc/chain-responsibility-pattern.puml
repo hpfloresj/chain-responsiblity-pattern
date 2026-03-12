@@ -1,0 +1,93 @@
+@startuml
+' Estilos para mejorar la apariencia
+skinparam linetype ortho
+skinparam packageStyle rect
+skinparam defaultFontName Segoe UI
+skinparam shadowing false
+skinparam roundcorner 10
+skinparam class {
+    ArrowColor #2688d4
+    BorderColor #2688d4
+    BackgroundColor #white
+}
+skinparam interface {
+    ArrowColor #2688d4
+    BorderColor #2688d4
+    BackgroundColor #white
+}
+
+' Título del diagrama
+title Diagrama de Clases - Patrón Cadena de Responsabilidad
+
+' Paquete para los objetos de datos
+package "Data Transfer Objects" {
+    class PaymentRequest {
+      -customerId: String
+      -accountNumber: String
+      -amount: double
+    }
+
+    class PaymentResponse {
+      -customerValid: boolean
+      -accountValid: boolean
+      -balanceValid: boolean
+      -balance: double
+    }
+}
+
+' Paquete para el núcleo del Handler
+package "Handler Core" {
+    interface "Handler<REQ, RESP>" as Handler {
+      +handle(REQ, RESP): RESP
+    }
+
+    abstract class "AbstractHandler<REQ, RESP>" as AbstractHandler {
+      -next: AbstractHandler<REQ, RESP>
+      +setNext(AbstractHandler<REQ, RESP>): AbstractHandler<REQ, RESP>
+      #next(REQ, RESP): RESP
+    }
+}
+
+' Paquete para los manejadores concretos
+package "Concrete Handlers" {
+    class CustomerValidationHandler
+    class AccountValidationHandler
+    class BalanceValidationHandler
+    class PaymentProcessorHandler
+}
+
+' Paquete para el cliente
+package "Client" {
+    class Main {
+      +main(String[]): void
+    }
+}
+
+
+' Definición de relaciones
+Handler <|.. AbstractHandler
+AbstractHandler <|-- CustomerValidationHandler
+AbstractHandler <|-- AccountValidationHandler
+AbstractHandler <|-- BalanceValidationHandler
+AbstractHandler <|-- PaymentProcessorHandler
+
+' Relación de la cadena (siguiente manejador)
+AbstractHandler o-down-> "1" AbstractHandler : "next"
+
+' Relaciones de uso y creación
+' Ayuda al layout para posicionar los paquetes
+Client -[hidden]right- "Handler Core"
+Main -right-> Handler : usa
+Main .right.> PaymentRequest : crea
+Main .right.> PaymentResponse : crea
+
+CustomerValidationHandler .> PaymentRequest : usa
+CustomerValidationHandler .> PaymentResponse : usa
+AccountValidationHandler .> PaymentRequest : usa
+AccountValidationHandler .> PaymentResponse : usa
+BalanceValidationHandler .> PaymentRequest : usa
+BalanceValidationHandler .> PaymentResponse : usa
+PaymentProcessorHandler .> PaymentRequest : usa
+PaymentProcessorHandler .> PaymentResponse : usa
+
+@enduml
